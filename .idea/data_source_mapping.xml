@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/de21b65f-e741-43e7-af0d-3f761a3e8910/console.sql" value="de21b65f-e741-43e7-af0d-3f761a3e8910" />
+    <file url="file://$PROJECT_DIR$/insta_clone_db.sql" value="de21b65f-e741-43e7-af0d-3f761a3e8910" />
+  </component>
+</project>
