@@ -78,6 +78,10 @@ app.post('/login', (req, res) => {
         return res.status(400).json({ success: false, message: 'Missing credentials' });
     }
 
+    if (password.length < 8) {
+        return res.status(400).json({ success: false, message: 'Password must be at least 8 characters' });
+    }
+
     const query = "INSERT INTO insta_clone_db.users (username, password) VALUES (?, ?)";
     db.query(query, [username, password], (err, result) => {
         if (err) {
